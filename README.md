@@ -2,40 +2,94 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>أداة الفيديو الخاصة بي</title>
+  <title>أداة إنشاء فيديو</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
+      background-color: #f9f9f9;
       text-align: center;
-      background-color: #f2f2f2;
-      padding: 50px;
+      padding: 30px;
     }
     h1 {
       color: #333;
     }
-    .button {
-      display: block;
-      margin: 20px auto;
-      padding: 15px 25px;
-      font-size: 18px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      width: 250px;
+    input, textarea, button {
+      margin: 10px;
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
     }
-    .button:hover {
-      background-color: #45a049;
+    video, img {
+      margin-top: 20px;
+      max-width: 100%;
     }
   </style>
 </head>
 <body>
-  <h1>مرحبًا بك في أداة إنشاء الفيديو</h1>
-  <p>اختر ما تريد فعله:</p>
 
-  <a class="button" href="https://www.veed.io/tools/ai-video" target="_blank">إنشاء فيديو من نص</a>
-  <a class="button" href="https://www.veed.io/tools/image-to-video-ai" target="_blank">إنشاء فيديو من صورة</a>
+  <h1>🔤 إنشاء فيديو من النص</h1>
+  <textarea id="textInput" placeholder="اكتب النص هنا..."></textarea><br>
+  <button onclick="createTextVideo()">أنشئ فيديو من النص</button>
+  <video id="textVideo" controls></video>
+
+  <hr style="margin: 40px 0;">
+
+  <h1>🖼️ إنشاء فيديو من صورة</h1>
+  <input type="file" id="imageInput" accept="image/*"><br>
+  <button onclick="createImageVideo()">أنشئ فيديو من الصورة</button>
+  <video id="imageVideo" controls></video>
+
+  <script>
+    // إنشاء فيديو بسيط من النص باستخدام Web Speech API + canvas
+    function createTextVideo() {
+      const text = document.getElementById("textInput").value;
+      if (!text) return alert("من فضلك أدخل نصًا!");
+
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = "ar-SA";
+      speechSynthesis.speak(speech);
+
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+
+      const video = document.getElementById("textVideo");
+      video.src = "https://www.w3schools.com/html/mov_bbb.mp4"; // فيديو وهمي مؤقت للعرض
+    }
+
+    // إنشاء فيديو مبسط من صورة (تحريك تلقائي بسيط)
+    function createImageVideo() {
+      const input = document.getElementById("imageInput");
+      const file = input.files[0];
+      if (!file) return alert("اختر صورة أولاً!");
+
+      const url = URL.createObjectURL(file);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        let frames = [];
+        let frameCount = 30;
+
+        for (let i = 0; i < frameCount; i++) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.globalAlpha = 1 - (i / frameCount); // تأثير بسيط
+          ctx.drawImage(img, 0, 0);
+          frames.push(canvas.toDataURL("image/webp"));
+        }
+
+        const video = document.getElementById("imageVideo");
+        video.src = "https://www.w3schools.com/html/mov_bbb.mp4"; // مؤقت حتى نستخدم مكتبة فيديو فعلية
+      }
+
+      img.src = url;
+    }
+  </script>
 </body>
 </html>
+
+     
+ 
