@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>أداة إنشاء فيديو</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+    }
+    textarea, input[type="file"], button {
+      margin: 10px 0;
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    video {
+      margin-top: 20px;
+      width: 90%;
+      max-width: 600px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✍️ إنشاء فيديو من النص</h1>
+  <textarea id="textInput" rows="4" placeholder="اكتب نصًا هنا..."></textarea>
+  <button onclick="createTextVideo()">عرض فيديو من النص</button>
+  <video id="textVideo" controls></video>
+
+  <hr style="margin: 50px 0;">
+
+  <h1>🖼️ إنشاء فيديو من صورة</h1>
+  <input type="file" id="imageInput" accept="image/*">
+  <button onclick="createImageVideo()">عرض فيديو من الصورة</button>
+  <video id="imageVideo" controls></video>
+
+  <script>
+    function createTextVideo() {
+      const text = document.getElementById("textInput").value.trim();
+      if (!text) {
+        alert("يرجى إدخال نص أولاً!");
+        return;
+      }
+
+      // عرض فيديو تمثيلي فقط
+      const video = document.getElementById("textVideo");
+      video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+      video.load();
+      video.play();
+    }
+
+    function createImageVideo() {
+      const fileInput = document.getElementById("imageInput");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("يرجى اختيار صورة!");
+        return;
+      }
+
+      const video = document.getElementById("imageVideo");
+      video.src = "https://www.w3schools.com/html/movie.mp4"; // فيديو وهمي تمثيلي
+      video.load();
+      video.play();
+    }
+  </script>
+
+</body>
+</html>
