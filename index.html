@@ -2,76 +2,105 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>أداة إنشاء فيديو</title>
+  <title>صانع فيديو حقيقي من نص أو صورة</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      font-family: Tahoma;
       text-align: center;
-      padding: 40px;
+      padding: 30px;
     }
-    h1 {
-      color: #333;
+    canvas {
+      border: 1px solid #ccc;
+      margin: 20px 0;
     }
-    textarea, input[type="file"], button {
-      margin: 10px 0;
+    button, input, textarea {
       padding: 10px;
+      margin: 10px;
       width: 300px;
       font-size: 16px;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    video {
-      margin-top: 20px;
-      width: 90%;
-      max-width: 600px;
-      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
 
-  <h1>✍️ إنشاء فيديو من النص</h1>
-  <textarea id="textInput" rows="4" placeholder="اكتب نصًا هنا..."></textarea>
-  <button onclick="createTextVideo()">عرض فيديو من النص</button>
-  <video id="textVideo" controls></video>
+  <h1>🎥 إنشاء فيديو حقيقي من نص</h1>
+  <textarea id="textInput" rows="4" placeholder="اكتب النص هنا..."></textarea><br>
+  <button onclick="generateTextVideo()">إنشاء فيديو من النص</button><br>
+  <a id="downloadTextLink" style="display:none;" download="text-video.webm">⬇️ تحميل الفيديو</a>
 
-  <hr style="margin: 50px 0;">
+  <hr>
 
-  <h1>🖼️ إنشاء فيديو من صورة</h1>
-  <input type="file" id="imageInput" accept="image/*">
-  <button onclick="createImageVideo()">عرض فيديو من الصورة</button>
-  <video id="imageVideo" controls></video>
+  <h1>🖼️ إنشاء فيديو حقيقي من صورة</h1>
+  <input type="file" id="imageInput" accept="image/*"><br>
+  <button onclick="generateImageVideo()">إنشاء فيديو من الصورة</button><br>
+  <a id="downloadImageLink" style="display:none;" download="image-video.webm">⬇️ تحميل الفيديو</a>
+
+  <canvas id="canvas" width="640" height="360"></canvas>
 
   <script>
-    function createTextVideo() {
-      const text = document.getElementById("textInput").value.trim();
-      if (!text) {
-        alert("يرجى إدخال نص أولاً!");
-        return;
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    async function recordFrames(drawFrame, seconds) {
+      const stream = canvas.captureStream();
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.start();
+
+      const fps = 30;
+      let frames = seconds * fps;
+      for (let i = 0; i < frames; i++) {
+        drawFrame(i, frames);
+        await new Promise(r => setTimeout(r, 1000 / fps));
       }
 
-      //عرض فيديو من النص الذي يكتب 
-      const video = document.getElementById("textVideo");
-      video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
-      video.load();
-      video.play();
+      recorder.stop();
+      return await new Promise(resolve => {
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: 'video/webm' });
+          resolve(URL.createObjectURL(blob));
+        };
+      });
     }
 
-    function createImageVideo() {
-      const fileInput = document.getElementById("imageInput");
-      const file = fileInput.files[0];
+    async function generateTextVideo() {
+      const text = document.getElementById('textInput').value.trim();
+      if (!text) return alert('اكتب نصاً أولاً');
 
-      if (!file) {
-        alert("يرجى اختيار صورة!");
-        return;
-      }
+      const draw = (i, total) => {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = '28px Tahoma';
+        ctx.fillText(text, 50, 180);
+      };
 
-      const video = document.getElementById("imageVideo");
-      video.src = "https://www.w3schools.com/html/movie.mp4"; // فيديو حقيقي يمثل الصورة 
-      video.load();
-      video.play();
+      const url = await recordFrames(draw, 3); // 3 ثواني
+      const link = document.getElementById('downloadTextLink');
+      link.href = url;
+      link.style.display = 'inline-block';
+    }
+
+    async function generateImageVideo() {
+      const input = document.getElementById('imageInput');
+      const file = input.files[0];
+      if (!file) return alert('اختر صورة أولاً');
+
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+
+      await img.decode();
+
+      const draw = (i, total) => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+
+      const url = await recordFrames(draw, 3);
+      const link = document.getElementById('downloadImageLink');
+      link.href = url;
+      link.style.display = 'inline-block';
     }
   </script>
 
