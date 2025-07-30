@@ -2,16 +2,23 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>صانع فيديو حقيقي من نص أو صورة</title>
+  <title>إنشاء فيديو حقيقي من نص أو صورة</title>
   <style>
     body {
       font-family: Tahoma;
       text-align: center;
       padding: 30px;
+      background-color: #f9f9f9;
     }
     canvas {
       border: 1px solid #ccc;
       margin: 20px 0;
+    }
+    video {
+      margin: 20px 0;
+      width: 640px;
+      max-width: 90%;
+      border: 1px solid #999;
     }
     button, input, textarea {
       padding: 10px;
@@ -23,19 +30,21 @@
 </head>
 <body>
 
-  <h1>🎥 إنشاء فيديو حقيقي من نص</h1>
+  <h1>🎥 إنشاء فيديو من النص</h1>
   <textarea id="textInput" rows="4" placeholder="اكتب النص هنا..."></textarea><br>
   <button onclick="generateTextVideo()">إنشاء فيديو من النص</button><br>
+  <video id="textVideo" controls></video>
   <a id="downloadTextLink" style="display:none;" download="text-video.webm">⬇️ تحميل الفيديو</a>
 
   <hr>
 
-  <h1>🖼️ إنشاء فيديو حقيقي من صورة</h1>
+  <h1>🖼️ إنشاء فيديو من صورة</h1>
   <input type="file" id="imageInput" accept="image/*"><br>
   <button onclick="generateImageVideo()">إنشاء فيديو من الصورة</button><br>
+  <video id="imageVideo" controls></video>
   <a id="downloadImageLink" style="display:none;" download="image-video.webm">⬇️ تحميل الفيديو</a>
 
-  <canvas id="canvas" width="640" height="360"></canvas>
+  <canvas id="canvas" width="640" height="360" style="display:none;"></canvas>
 
   <script>
     const canvas = document.getElementById('canvas');
@@ -60,14 +69,15 @@
       return await new Promise(resolve => {
         recorder.onstop = () => {
           const blob = new Blob(chunks, { type: 'video/webm' });
-          resolve(URL.createObjectURL(blob));
+          const url = URL.createObjectURL(blob);
+          resolve(url);
         };
       });
     }
 
     async function generateTextVideo() {
       const text = document.getElementById('textInput').value.trim();
-      if (!text) return alert('اكتب نصاً أولاً');
+      if (!text) return alert('يرجى كتابة نص أولاً');
 
       const draw = (i, total) => {
         ctx.fillStyle = '#000';
@@ -77,8 +87,14 @@
         ctx.fillText(text, 50, 180);
       };
 
-      const url = await recordFrames(draw, 3); // 3 ثواني
+      const url = await recordFrames(draw, 3);
+      const video = document.getElementById('textVideo');
       const link = document.getElementById('downloadTextLink');
+
+      video.src = url;
+      video.style.display = 'block';
+      video.play();
+
       link.href = url;
       link.style.display = 'inline-block';
     }
@@ -86,19 +102,27 @@
     async function generateImageVideo() {
       const input = document.getElementById('imageInput');
       const file = input.files[0];
-      if (!file) return alert('اختر صورة أولاً');
+      if (!file) return alert('يرجى اختيار صورة');
 
       const img = new Image();
       img.src = URL.createObjectURL(file);
-
       await img.decode();
 
       const draw = (i, total) => {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const x = Math.sin(i / 10) * 20; // حركة بسيطة
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, x, 0, canvas.width, canvas.height);
       };
 
       const url = await recordFrames(draw, 3);
+      const video = document.getElementById('imageVideo');
       const link = document.getElementById('downloadImageLink');
+
+      video.src = url;
+      video.style.display = 'block';
+      video.play();
+
       link.href = url;
       link.style.display = 'inline-block';
     }
